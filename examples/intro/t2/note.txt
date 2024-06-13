@@ -1,0 +1,2 @@
+Shell command handlers should be put in an array terminated with a command handlers with all NULL entries.
+
