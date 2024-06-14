@@ -5,9 +5,8 @@ RIOTBASE = $(HOME)/RIOT
 QUIET ?= 1
 DEVELHELP = 1
 
-USEMODULE = shell 
-USEMODULE = thread
-USEMODULE = xtimer
-
+USEMODULE += shell 
+USEMODULE += xtimer
+USEMODULE += ps
 
 include $(RIOTBASE)/Makefile.include
