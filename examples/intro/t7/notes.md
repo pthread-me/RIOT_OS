@@ -1,0 +1,1 @@
+- to send the udp packet use echo "<message>" | nc -6u -q1 <ipv6 address>%tapbr0 8080
