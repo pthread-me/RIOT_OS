@@ -215,3 +215,40 @@ Changes not staged for commit:
   (use "git restore <file>..." to discard changes in working directory)
 	modified:   log.txt
 
+
+Commit result:
+[main 35b21db] ""
+ 20 files changed, 266 insertions(+)
+ create mode 100644 log.txt
+ rename notes.md => practice/README.md (100%)
+ rename {examples/intro => practice}/a.test (100%)
+ rename {examples/intro => practice}/t1/Makefile (100%)
+ rename {examples/intro => practice}/t1/main.c (100%)
+ rename {examples/intro => practice}/t2/Makefile (100%)
+ rename {examples/intro => practice}/t2/main.c (100%)
+ rename {examples/intro => practice}/t2/note.txt (100%)
+ rename {examples/intro => practice}/t3/Makefile (100%)
+ rename {examples/intro => practice}/t3/main.c (100%)
+ rename {examples/intro => practice}/t4/Makefile (100%)
+ rename {examples/intro => practice}/t4/main.c (100%)
+ rename {examples/intro => practice}/t7/Makefile (100%)
+ rename {examples/intro => practice}/t7/Makefile.ci (100%)
+ rename {examples/intro => practice}/t7/Makefile.gnu.dep (100%)
+ rename {examples/intro => practice}/t7/README.md (100%)
+ rename {examples/intro => practice}/t7/main.c (100%)
+ rename {examples/intro => practice}/t7/notes.md (100%)
+ create mode 100755 schc/copy.sh
+ create mode 100644 schc/setup.sh
+
+------------------------------------------------------------
+On: Wed Jul 17 19:55:38 ADT 2024
+status:On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   log.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
