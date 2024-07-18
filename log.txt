@@ -286,3 +286,21 @@ Changes not staged for commit:
 	modified:   log.txt
 
 no changes added to commit (use "git add" and/or "git commit -a")
+
+Commit result:
+[main 6a1a969] "added the shell script, didnt do much today tbh but will need to read the paper now so..... :("
+ 1 file changed, 17 insertions(+)
+
+------------------------------------------------------------
+On: Wed Jul 17 23:54:04 ADT 2024
+status:On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   log.txt
+	modified:   schc/copy.sh
+	modified:   schc/setup.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")

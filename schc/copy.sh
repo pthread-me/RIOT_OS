@@ -3,8 +3,10 @@
 THIS=(~/RIOT/examples/native/schc)
 TO=(~/hub/RIOT_OS)
 
+
 check_format(){
-	if [ "$2" == "" ]; then
+
+	if [ -z "$1" ]; then
 		echo "must provide a commit message when executing with -g flag"
 		exit 1
 	fi
@@ -22,11 +24,11 @@ commit(){
 	printf "status:" >> $TO/log.txt
 
 	
-	(cd $TO git status) >> $TO/log.txt
-	(cd $TO git add -A)
+	git -C $TO status >> $TO/log.txt
+	git -C $TO add -A
 	
 	printf "\nCommit result:\n" >> $TO/log.txt
-	(cd $TO git commit -m "$2") >> $TO/log.txt
+	git -C $TO commit -m \""$1"\" >> $TO/log.txt
 	echo "check $TO/log.txt for the status of the commit"
 }
 
@@ -39,8 +41,9 @@ case "$1" in
 		copy
 		;;
 	-g|--git|--commit)
-		check_format
-		commit
+		check_format $2
+		copy
+		commit $2
 		;;
 	*|-h|--help|help)
 		help
