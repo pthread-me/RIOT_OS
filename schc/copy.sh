@@ -15,6 +15,8 @@ check_format(){
 copy(){
 	cp -r $THIS $TO
 	echo "copied all the contents of $THIS to $TO"
+
+	rm -r $TO/schc/bin
 }
 
 

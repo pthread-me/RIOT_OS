@@ -304,3 +304,7 @@ Changes not staged for commit:
 	modified:   schc/setup.sh
 
 no changes added to commit (use "git add" and/or "git commit -a")
+
+Commit result:
+[main d56031d] "im dumb lol, should be fixed now"
+ 3 files changed, 95 insertions(+), 7 deletions(-)
