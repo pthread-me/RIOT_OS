@@ -308,3 +308,21 @@ no changes added to commit (use "git add" and/or "git commit -a")
 Commit result:
 [main d56031d] "im dumb lol, should be fixed now"
  3 files changed, 95 insertions(+), 7 deletions(-)
+
+------------------------------------------------------------
+On: Wed Jul 31 04:17:55 ADT 2024
+status:On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   log.txt
+	modified:   schc/main.c
+	modified:   schc/udp.c
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	pkt_readers/
+
+no changes added to commit (use "git add" and/or "git commit -a")
