@@ -326,3 +326,10 @@ Untracked files:
 	pkt_readers/
 
 no changes added to commit (use "git add" and/or "git commit -a")
+
+Commit result:
+[main 6a3511a] "finished most of the udp and ip compression, but am having issues with pkt dispatching so all related code is commented out :("
+ 6 files changed, 263 insertions(+), 35 deletions(-)
+ create mode 100644 pkt_readers/Makefile
+ create mode 100755 pkt_readers/a
+ create mode 100644 pkt_readers/main.c
