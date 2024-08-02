@@ -1,0 +1,58 @@
+//FILE NOT TO BE RUN/USED, JUST SAVING POSIBBLY USEFUL FUNCTIONS/LINES OF CODE THAT
+// TOO FOREVER TO FIND IN THE DOCS/FIGURE OUT.
+
+//-----------------------------------------------------------------------------
+	//simple check to ensure that the rules is correctly implemented
+	if(comp_rule != NULL && comp_rule->udp_rule != NULL){
+		printf("udp rule exists and is %p\n", (void*)comp_rule->udp_rule);
+		uint8_t udp_f_len = comp_rule->udp_rule->content[1].target_value[0];
+		printf("udp source port length should be 16 and is %d\n", udp_f_len);
+	}else{
+		puts("udp rule not found\n");
+	}
+//-----------------------------------------------------------------------------
+
+
+//	BELLOW CODE IS FOR DISPATCHING PACKETS WHICH I AM STILL FIGURING OUT HOW 
+//	TO DO WHEN THE PKT IS COMPRESSED, an issue is that we doent have ethertypes
+//	for schc
+
+/*
+	puts("getting mac addr");
+	uint8_t* l2addr = calloc(GNRC_NETIF_L2ADDR_MAXLEN, sizeof(uint8_t));
+
+	printf("The mac addr length is %d\n", GNRC_NETIF_L2ADDR_MAXLEN);
+
+
+	int addr_len = (GNRC_NETIF_L2ADDR_MAXLEN*3) -1;
+	
+	int index = 0;
+	for(int i=0; i<addr_len; i+=3){
+		l2addr[index] = dest_mac[i]*16 + dest_mac[i+1];
+		index++;
+	}
+
+
+	//creating the netif header
+	gnrc_netif_t* netif = gnrc_netif_iter(NULL);
+	gnrc_pktsnip_t* netif_hdr = gnrc_netif_hdr_build(NULL, 0, NULL, 0);
+	((gnrc_netif_hdr_t*)netif_hdr->data)->if_pid = netif->pid;
+
+
+	//prepending ip packet to the net interface and sending it to layer 2
+	gnrc_pkt_prepend(ip, netif_hdr);
+	
+	//printf("\n\nNetif header:\n");
+//	gnrc_netif_hdr_print((gnrc_netif_hdr_t*)netif_hdr->data);
+
+
+	
+	if(gnrc_netapi_dispatch_send(GNRC_NETTYPE_IPV6, GNRC_NETREG_DEMUX_CTX_ALL, netif_hdr) <0){
+		printf("couldnt dispatch packet\n");
+		return NULL;
+	}
+*/
+
+//-----------------------------------------------------------------------------
+
+

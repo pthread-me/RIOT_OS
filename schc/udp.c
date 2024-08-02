@@ -8,6 +8,7 @@
 #include "net/gnrc/ipv6.h"
 #include "net/gnrc/netif.h"
 #include "net/gnrc/netif/hdr.h"
+#include "net/ipv6.h"
 #include "net/gnrc/udp.h"
 #include "net/gnrc/pktdump.h"
 #include "utlist.h"
@@ -30,9 +31,6 @@ static char server_buffer[SERVER_BUFFER_SIZE];
 static msg_t server_msg_queue[SERVER_MSG_QUEUE_SIZE];
 
 
-
-
-
 /**
   * Function is used to print the raw packets accessed via gnrc_pktsnip_t->data
   * in a bits format
@@ -48,10 +46,44 @@ void print_bits(int input){
 		printf("%d", output);
 
 		mask = mask >> 1;
-	}
-	
+	}	
 }
 
+
+/**
+  * setting up the udp/ipv6 packet by changing the field values from the 
+  * default values placed by riot
+**/
+void pkt_setup(gnrc_pktsnip_t* ip, gnrc_pktsnip_t* udp, gnrc_pktsnip_t* coap){
+	
+	if(ip){
+		void* data = ip->data;
+		((ipv6_hdr_t*) data)->nh = PROTNUM_UDP;
+	}
+
+	if(udp){
+		void* data = udp->data;
+		
+		//dst port num is stored as a big-endian 16 bit int, in the
+		//network_uint16_t or be_uint16_t struct (same thing just typedef ed)
+		network_uint16_t be_dst= ((udp_hdr_t*) data)->dst_port;
+		
+		//converting the big endian dst to little endian then extracting the 
+		//actual port num from the struct
+		uint16_t dst = (byteorder_btols(be_dst)).u16;
+	
+		printf("the udp dst port found is: %d", dst);
+	}
+
+	if(coap){
+
+	}
+}
+
+
+/**
+  *	Starts a simple udp server
+**/
 void* udp_server(void* argv){
 
 	msg_init_queue(server_msg_queue, SERVER_MSG_QUEUE_SIZE);
@@ -69,6 +101,10 @@ void* udp_server(void* argv){
 	}
 }
 
+
+/**
+  *	Sends a udp packets over ipv6 to the inputted address and port
+**/
 void* udp_send(void* argv){
 	
 	//reading in the thread arguments
@@ -97,9 +133,7 @@ void* udp_send(void* argv){
 	}	
 
 	port = (int16_t) strtol(dest_port, NULL, 10);
-
 	gnrc_pktsnip_t *payload, *udp, *ip;
-	
 	payload = gnrc_pktbuf_add(NULL, (void*)data, strlen(data), GNRC_NETTYPE_UNDEF);
 	
 
@@ -115,6 +149,8 @@ void* udp_send(void* argv){
 		return NULL;
 	}
 
+	pkt_setup(ip, udp, NULL);
+	
 	//merging ip and udp headers so its a single gnrc_pktsnip_t since the 
 	//libschc compression requires that udp is paired with ip 
 	if(gnrc_pktbuf_merge(ip) != 0){
@@ -130,82 +166,36 @@ void* udp_send(void* argv){
 	int ip_hdr_size = ip->size;
 	int udp_hdr_size = udp->size;
 
-
 	printf("\nIPv6 hdr size:%d\nUDP hdr size:%d\n", ip_hdr_size, udp_hdr_size);
-	
+
+/*
 	//printing the original header in bit format
 	for(int i=0; i<ip_hdr_size; i++){
 		print_bits(	((int*)ip->data)[i]	);
 	}
 	printf("\n");
+*/
 
-	
 	schc_compressor_init();
 
 	struct schc_compression_rule_t* comp_rule;
-	uint8_t* out_buf = calloc(ip->size * 8, sizeof(uint8_t));
-	
-	schc_bitarray_t bit_array = SCHC_DEFAULT_BIT_ARRAY(ip->size, out_buf);
+	uint8_t* out_buf = calloc(ip->size , sizeof(uint8_t));
+	schc_bitarray_t bit_array = SCHC_DEFAULT_BIT_ARRAY(ip->size , out_buf);
 
-	printf("compressing\n");
+	// the actual compression call
 	comp_rule = schc_compress(ip->data, ip->size, &bit_array, 0x01, DOWN);
-	
-
-	//simple check to ensure that the rules is correctly implemented
-	if(comp_rule->udp_rule){
-		printf("udp rule exists\n");
-		uint8_t udp_f_len = comp_rule->udp_rule->content[1].target_value[0];
-		printf("udp source port length should be 16 and is %d\n", udp_f_len);
-	}
-
+	(void) comp_rule;	
 		
 /*-----------------------------------------------------------------------------
 	#END OF SCHC
 -----------------------------------------------------------------------------*/
 
-
-//	BELLOW CODE IS FOR DISPATCHING PACKETS WHICH I AM STILL FIGURING OUT HOW 
-//	TO DO WHEN THE PKT IS COMPRESSED, an issue is that we doent have ethertypes
-//	for schc
-
-/*
-	puts("getting mac addr");
-	uint8_t* l2addr = calloc(GNRC_NETIF_L2ADDR_MAXLEN, sizeof(uint8_t));
-
-	printf("The mac addr length is %d\n", GNRC_NETIF_L2ADDR_MAXLEN);
-
-
-	int addr_len = (GNRC_NETIF_L2ADDR_MAXLEN*3) -1;
-	
-	int index = 0;
-	for(int i=0; i<addr_len; i+=3){
-		l2addr[index] = dest_mac[i]*16 + dest_mac[i+1];
-		index++;
-	}
-
-
-	//creating the netif header
-	gnrc_netif_t* netif = gnrc_netif_iter(NULL);
-	gnrc_pktsnip_t* netif_hdr = gnrc_netif_hdr_build(NULL, 0, NULL, 0);
-	((gnrc_netif_hdr_t*)netif_hdr->data)->if_pid = netif->pid;
-
-
-	//prepending ip packet to the net interface and sending it to layer 2
-	gnrc_pkt_prepend(ip, netif_hdr);
-	
-	//printf("\n\nNetif header:\n");
-//	gnrc_netif_hdr_print((gnrc_netif_hdr_t*)netif_hdr->data);
-
-
-	
-	if(gnrc_netapi_dispatch_send(GNRC_NETTYPE_IPV6, GNRC_NETREG_DEMUX_CTX_ALL, netif_hdr) <0){
-		printf("couldnt dispatch packet\n");
-		return NULL;
-	}
-*/
-
 	return NULL;
 }
+
+/**
+  * CLI command handling
+**/
 int udp_cmds(int argc, char** argv){
 
 	if(argc == 4){

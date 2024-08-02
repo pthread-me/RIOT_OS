@@ -12,7 +12,7 @@ CFLAGS += -DSCHEDSTATISTICS
 
 USEPKG += libschc
 #USEMODULE += libschc_coap
-
+USEMODULE += libschc_udpv6
 
 USEMODULE += shell
 USEMODULE += shell_cmds_default 
@@ -20,6 +20,7 @@ USEMODULE += ps
 USEMODULE += netdev_default
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_ipv6_default
+USEMODULE += gnrc_ipv6_ext
 USEMODULE += gnrc_nettype_udp
 USEMODULE += gnrc_udp
 include $(RIOTBASE)/Makefile.include

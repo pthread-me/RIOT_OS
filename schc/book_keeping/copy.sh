@@ -1,7 +1,7 @@
 #!/bin/zsh
 
-THIS=(~/RIOT/examples/native/schc)
-TO=(~/hub/RIOT_OS)
+THIS=($HOME/RIOT/examples/native/schc)
+TO=($HOME/hub/RIOT_OS)
 
 
 check_format(){
@@ -14,7 +14,23 @@ check_format(){
 
 copy(){
 	cp -r $THIS $TO
-	echo "copied all the contents of $THIS to $TO"
+	echo "copied all the contents of $THIS to $TO/schc"
+	
+	if  [ ! -d $TO/schc/book_keeping ]; then
+		mkdir "$TO/schc/book_keeping"
+	fi
+
+	if [ -f $TO/schc/copy.sh ]; then
+		mv "$TO/schc/copy.sh" "$TO/schc/book_keeping"
+	fi
+
+	if [ -f $TO/schc/setup.sh ]; then
+		mv "$TO/schc/setup.sh" "$TO/schc/book_keeping"
+	fi
+
+	if [ -f $TO/schc/useful_dump.txt ]; then
+		mv "$TO/schc/useful_dump.txt" "$TO/schc/book_keeping"
+	fi
 
 	rm -r $TO/schc/bin
 }
