@@ -11,7 +11,7 @@ CFLAGS += -DDEVELHELP
 CFLAGS += -DSCHEDSTATISTICS
 
 USEPKG += libschc
-#USEMODULE += libschc_coap
+USEMODULE += libschc_coap
 USEMODULE += libschc_udpv6
 
 USEMODULE += shell
@@ -23,4 +23,7 @@ USEMODULE += gnrc_ipv6_default
 USEMODULE += gnrc_ipv6_ext
 USEMODULE += gnrc_nettype_udp
 USEMODULE += gnrc_udp
+USEMODULE += gnrc_pktbuf
+USEMODULE += nanocoap
+
 include $(RIOTBASE)/Makefile.include

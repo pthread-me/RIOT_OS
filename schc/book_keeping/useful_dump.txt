@@ -56,3 +56,43 @@
 //-----------------------------------------------------------------------------
 
 
+/*
+	//printing the original header in bit format
+	for(int i=0; i<ip_hdr_size; i++){
+		print_bits(	((int*)ip->data)[i]	);
+	}
+	printf("\n");
+*/
+
+//-----------------------------------------------------------------------------
+#define SERVER_MSG_QUEUE_SIZE 8
+#define SERVER_BUFFER_SIZE 128
+
+
+static bool server_status = false; //true == on, false == off
+static char sender_thread_stack[THREAD_STACKSIZE_DEFAULT];
+static char server_thread_stack[THREAD_STACKSIZE_DEFAULT];
+static char server_buffer[SERVER_BUFFER_SIZE];
+static msg_t server_msg_queue[SERVER_MSG_QUEUE_SIZE];
+
+
+
+//Starts a simple udp server
+void* udp_server(void* argv){
+
+	msg_init_queue(server_msg_queue, SERVER_MSG_QUEUE_SIZE);
+
+	//creating and initializing a static net registry for the calling thread
+	gnrc_netreg_entry_t server = GNRC_NETREG_ENTRY_INIT_PID(GNRC_NETREG_DEMUX_CTX_ALL, thread_getpid());
+	gnrc_netreg_register(GNRC_NETTYPE_IPV6, &server);
+
+	while(true){
+		msg_t message;
+		printf("waiting for message\n");
+		msg_receive(&message);
+
+		printf("got a message\n");
+	}
+}
+
+
