@@ -348,3 +348,7 @@ Changes not staged for commit:
 	modified:   schc/udp.c
 
 no changes added to commit (use "git add" and/or "git commit -a")
+
+Commit result:
+[main ff11db7] "everything works"
+ 4 files changed, 146 insertions(+), 123 deletions(-)

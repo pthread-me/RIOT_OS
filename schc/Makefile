@@ -4,18 +4,18 @@ RIOTBASE = $(HOME)/RIOT
 PKGBASE = $(HOME)/RIOT/pkg
 BOARD ?= native
 
-QUIET ?= 1 
+QUIET ?= 1
 
 DEVELHELP = 1
 CFLAGS += -DDEVELHELP
 CFLAGS += -DSCHEDSTATISTICS
 
 USEPKG += libschc
-USEMODULE += libschc_coap
 USEMODULE += libschc_udpv6
+USEMODULE += libschc_coap
 
 USEMODULE += shell
-USEMODULE += shell_cmds_default 
+USEMODULE += shell_cmds_default
 USEMODULE += ps
 USEMODULE += netdev_default
 USEMODULE += auto_init_gnrc_netif

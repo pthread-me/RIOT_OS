@@ -96,3 +96,18 @@ void* udp_server(void* argv){
 }
 
 
+
+//---------------------------------------------------------
+// UDP PORT FORMAT AND RANGE CHECK
+//---------------------------------------------------------
+
+	//checks port format and range
+	for(size_t i=0; i<strlen(dest_port); i++){
+		if(!isdigit(dest_port[i])){
+			printf("Invalid port format, must be an int\n");
+			return NULL;
+		}
+	}
+	port = (int16_t) strtol(dest_port, NULL, 10);
+
+

@@ -2,22 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <ctype.h>
 
-#include "net/ipv6/addr.h"
-#include "net/gnrc.h"
-#include "net/gnrc/ipv6.h"
-#include "net/ipv6.h"
-#include "net/gnrc/udp.h"
-#include "net/nanocoap.h"
-#include "net/coap.h"
+#include "pkt_factory.h"
 
 #include "schc.h"
 #include "compressor.h"
 #include "bit_operations.h"
 
 #define MAX_PACKET_SIZE 128
-
+static char sender_thread_stack[THREAD_STACKSIZE_DEFAULT];
 
 //Function is used to print the raw packets accessed via gnrc_pktsnip_t->data
 //in a bits format
@@ -35,107 +28,11 @@ void print_bits(int input){
 
 
 //Sends a udp packets over ipv6 to the inputted address and port
-void* udp_send(void* argv){
+void compress(gnrc_pktsnip_t* ip){
 
-//-----------------------------------------------------------------------------
-//  HANDLING USER INPUT AND CHECKING ITS FORMATS
-//-----------------------------------------------------------------------------
-	uint16_t port;
-	ipv6_addr_t addr;
-
-	//reading in the thread arguments
-	char** thread_arg = (char**)argv;
-
-	//char* dest_mac = thread_arg[1];
-	char* dest_addr = thread_arg[1];
-	char* dest_port = thread_arg[2];
-
-    if(ipv6_addr_from_str(&addr, dest_addr) == NULL){
-		printf("Invalid ipv6 address\n");
-		return NULL;
-	}
-
-	//checks port format and range
-	for(size_t i=0; i<strlen(dest_port); i++){
-		if(!isdigit(dest_port[i])){
-			printf("Invalid port format, must be an int\n");
-			return NULL;
-		}
-	}
-	port = (int16_t) strtol(dest_port, NULL, 10);
-
-
-//-----------------------------------------------------------------------------
-//  CREATING AND CUSTOMIZING THE PACKET
-//-----------------------------------------------------------------------------
-
-	gnrc_pktsnip_t *payload, *coap, *udp, *ip;
-
-
-    uint64_t token = 70;
-	coap_hdr_t* coap_hdr = calloc(1, sizeof(coap_hdr_t));
-	int coap_size = coap_build_hdr(coap_hdr, COAP_TYPE_NON, NULL, 0, COAP_CODE_EMPTY, 2);
-
-	coap = gnrc_pktbuf_add(NULL, (void*)coap_hdr, coap_size, GNRC_NETTYPE_UNDEF);
-
-	//adding udp header
-	if((udp = gnrc_udp_hdr_build(coap, 6666, port)) == NULL){
-		printf("cant add udp hdr\n");
-		return NULL;
-	}
-
-	//adding ip header
-	if((ip = gnrc_ipv6_hdr_build(udp,  &addr , &addr)) == NULL){
-		printf("cant add ipv6 hdr\n");
-		return NULL;
-	}
-
-	if(ip){
-
-        ipv6_hdr_t*  data = (ipv6_hdr_t*) ip->data;
-        data->nh = PROTNUM_UDP;
-	}
-
-	if(udp){
-
-		udp_hdr_t* data = (udp_hdr_t*)udp->data;
-
-		//dst port num is stored as a big-endian 16 bit int, in the
-		//network_uint16_t or be_uint16_t struct (same thing just typedef ed)
-		network_uint16_t be_dst= data->dst_port;
-		uint16_t dst = (byteorder_btols(be_dst)).u16;
-		printf("%d\n", dst);
-		//converting the big endian dst to little endian then extracting the
-		//actual port num from the struct
-		//uint16_t dst = (byteorder_btols(be_dst)).u16;
-
-	}
-
-	if(coap){
-		coap_hdr_t* data = (coap_hdr_t*)coap->data;
-	    coap_hdr_set_code(data, COAP_METHOD_GET);
-		coap_hdr_set_type(data, COAP_TYPE_NON);
-
-        // hardcoding the token length to be 8 bytes
-        uint8_t coap_hdr_tkl = data->ver_t_tkl;
-        uint8_t mask = 8;
-        coap_hdr_tkl = coap_hdr_tkl | mask;
-    }
-
-
-	//merging ip, udp and coap headers so its a single gnrc_pktsnip_t since
-    //libscshc doesn' work on seperate headers
-	if(gnrc_pktbuf_merge(ip) != 0){
-		printf("couldn't merge ip and udp packets\n");
-	}
 /*-----------------------------------------------------------------------------
 	#ADDING THE SCHC COMPRESSTION BELLOW
 -----------------------------------------------------------------------------*/
-
-	int ip_hdr_size = ip->size;
-	int udp_hdr_size = udp->size;
-	printf("\nIPv6 hdr size: %d bytes\nUDP hdr size: %d bytes\nCOAP hdr size: %d bytes\n",
-			ip_hdr_size, udp_hdr_size, coap_size);
 
 	schc_compressor_init();
 
@@ -145,26 +42,62 @@ void* udp_send(void* argv){
 
 	// the actual compression call
 	comp_rule = schc_compress(ip->data, ip->size, &bit_array, 0x01, DOWN);
-	(void) comp_rule;
+	if(comp_rule){
+        printf("\ncompresion rule used: %d\n", comp_rule->rule_id);
+    }
 
-/*-----------------------------------------------------------------------------
-	#END OF SCHC
------------------------------------------------------------------------------*/
-	return NULL;
+    (void) comp_rule;
 }
 
 
+void* run(void* argv){
+//-----------------------------------------------------------------------------
+//  HANDLING USER INPUT AND CHECKING ITS FORMATS
+//-----------------------------------------------------------------------------
+	ipv6_addr_t addr;
 
+	//reading in the thread arguments
+	char** thread_arg = (char**)argv;
+
+	//char* dest_mac = thread_arg[1];
+	char* dest_addr = thread_arg[1];
+
+    if(ipv6_addr_from_str(&addr, dest_addr) == NULL){
+		printf("Invalid ipv6 address\n");
+		return NULL;
+	}
+
+
+    gnrc_pktsnip_t* packet;
+
+    printf("Client GET request:\n");
+    packet = build_pkt(addr, 0);
+    compress(packet);
+
+    printf("Server ACK request:\n");
+    packet = build_pkt(addr, 1);
+    compress(packet);
+
+    printf("Server POST request:\n");
+    packet = build_pkt(addr, 2);
+    compress(packet);
+
+    printf("Client ACK request:\n");
+    packet = build_pkt(addr, 3);
+    compress(packet);
+
+    return NULL;
+}
 
 /**
   * CLI command handling
 **/
 int udp_cmds(int argc, char** argv){
 
-	if(argc == 3){
+	if(argc == 2){
 		kernel_pid_t sender_thread = thread_create(sender_thread_stack,
 				sizeof(sender_thread_stack), THREAD_PRIORITY_MAIN-1,
-				THREAD_CREATE_STACKTEST, udp_send, argv, "sending a udp packet");
+				THREAD_CREATE_STACKTEST, run, argv, "sending a udp packet");
 
 	}
   /*  else if(argc == 3 && strcmp(argv[1], "server") ==0){
