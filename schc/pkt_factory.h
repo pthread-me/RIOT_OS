@@ -23,6 +23,8 @@ typedef struct pkt_specifications{
     uint8_t coap_code;
     uint8_t coap_type;
     uint16_t coap_id;
+    uint64_t token; //will need to change int type depending on token_len
+    size_t token_len; //maximum 8
 }pkt_specs;
 
 
@@ -32,6 +34,8 @@ pkt_specs* get_specs(uint8_t id){
     uint8_t coap_code;
     uint8_t coap_type;
     uint16_t coap_id;
+    uint64_t token;
+    size_t token_len;
 
     switch (id) {
         //client request
@@ -41,35 +45,41 @@ pkt_specs* get_specs(uint8_t id){
             coap_code = COAP_METHOD_GET;
             coap_type = COAP_TYPE_CON;
             coap_id = 0xffff;
+            token = 0x01;
+            token_len = 1;
             break;
 
         //server ack
         case 1:
             src_port = 5684;
             dest_port = 60000;
-            //In hind sight there's a macro COAP_METHOD_VALID that does the same, but it looks prettier this way
-            //aiming for the sequence 010 00011, first 3 bits are the type(2 == ack), (5 == valid)
-            coap_code = COAP_CODE_VALID;//(COAP_TYPE_ACK << 5) | 3;
+            coap_code = COAP_CODE_EMPTY;
             coap_type = COAP_TYPE_ACK;
             coap_id = 0xffff;
+            token_len = 0;
+            token = 0x00;
             break;
 
         //server response
         case 2:
             src_port = 5684;
             dest_port = 60000;
-            coap_code = COAP_METHOD_POST;
+            coap_code = COAP_CODE_CONTENT;
             coap_type = COAP_TYPE_CON;
             coap_id = 0xfffd;
+            token = 0x01;
+            token_len = 1;
             break;
 
         //client ack
         case 3:
             src_port = 60000;
             dest_port = 5684;
-            coap_code = (COAP_TYPE_ACK << 5) | 3;
+            coap_code = COAP_CODE_EMPTY; //(COAP_TYPE_ACK << 5) | 3;
             coap_type = COAP_TYPE_ACK;
             coap_id = 0xfffd; // the reply to server response
+            token = 0x00;
+            token_len = 0;
             break;
 
         default:
@@ -78,6 +88,8 @@ pkt_specs* get_specs(uint8_t id){
             coap_code = COAP_CODE_EMPTY;
             coap_type = COAP_TYPE_NON;
             coap_id = 0x0000;
+            token = 0x00;
+            token_len = 1;
     }
 
     pkt_specs* pkt = calloc(1, sizeof(pkt_specs));
@@ -87,7 +99,8 @@ pkt_specs* get_specs(uint8_t id){
     pkt->coap_code = coap_code;
     pkt->coap_type = coap_type;
     pkt->coap_id = coap_id;
-
+    pkt->token = token;
+    pkt->token_len = token_len;
     return pkt;
 }
 
@@ -97,21 +110,22 @@ gnrc_pktsnip_t* build_pkt(ipv6_addr_t ip_addr, uint8_t packet_id){
     gnrc_pktsnip_t *coap, *udp, *ip;
     pkt_specs* specs = get_specs(packet_id);
 
-    uint64_t token_value = 0x0000000000000001;
     //token = gnrc_pktbuf_add(NULL, (void*) &token_value, 8, GNRC_NETTYPE_UNDEF);
 
 	coap_hdr_t* coap_hdr = calloc(1, sizeof(coap_hdr_t));
-	int coap_size = coap_build_hdr(coap_hdr, specs->coap_type, (void*)&token_value, 8, specs->coap_code, specs->coap_id);
+
+    int coap_size = coap_build_hdr(coap_hdr, specs->coap_type,
+            (void*)&specs->token, specs->token_len, specs->coap_code, specs->coap_id);
 	coap = gnrc_pktbuf_add(NULL, (void*)coap_hdr, coap_size, GNRC_NETTYPE_UNDEF);
 
 
     // hardcoding the token length to be 8 bytes
-    uint8_t coap_hdr_tkl = ((coap_hdr_t*)coap->data)->ver_t_tkl;
+/*    uint8_t coap_hdr_tkl = ((coap_hdr_t*)coap->data)->ver_t_tkl;
     printf("original token length: %d\n", coap_hdr_tkl);
     uint8_t mask = 0x08;
     coap_hdr_tkl = coap_hdr_tkl | mask;
     printf("modified token length: %d\n", coap_hdr_tkl);
-
+*/
     //adding udp header
 	if((udp = gnrc_udp_hdr_build(coap, specs->src_port, specs->dest_port)) == NULL){
 		printf("cant add udp hdr\n");

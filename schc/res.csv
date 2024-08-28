@@ -1,0 +1,5 @@
+flow number/packet, 	original size, 	compress IPv6/UDP/CoAP, compress IPv6/UDP, 	compress IPv6/CoAP, compress IPv6, 	compress CoAP
+1/client get, 			424, 			104, 					112, 				136, 				144, 			416
+1/server ack, 			416, 			96, 					112, 				128, 				144, 			408
+1/server response, 		424, 			104, 					112, 				136, 				144, 			416
+1/client ack, 			416, 			96, 					112, 				128, 				144,  			408
