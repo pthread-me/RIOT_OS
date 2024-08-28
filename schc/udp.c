@@ -69,29 +69,16 @@ void* run(void* argv){
 
 
     gnrc_pktsnip_t* packet;
-
     printf("\n--------------------------------------------------------------\n");
-    printf("Client GET request:\n");
+    printf("Client POST request:\n");
     printf("\n--------------------------------------------------------------\n");
-    packet = build_pkt(addr, 0);
+    packet = build_pkt(addr, 4);
     compress(packet);
 
     printf("\n--------------------------------------------------------------\n");
-    printf("Server ACK request:\n");
+    printf("Server piggybacked response:\n");
     printf("\n--------------------------------------------------------------\n");
-    packet = build_pkt(addr, 1);
-    compress(packet);
-
-    printf("\n--------------------------------------------------------------\n");
-    printf("Server POST request:\n");
-    printf("\n--------------------------------------------------------------\n");
-    packet = build_pkt(addr, 2);
-    compress(packet);
-
-    printf("\n--------------------------------------------------------------\n");
-    printf("Client ACK request:\n");
-    printf("\n--------------------------------------------------------------\n");
-    packet = build_pkt(addr, 3);
+    packet = build_pkt(addr, 5);
     compress(packet);
 
     return NULL;

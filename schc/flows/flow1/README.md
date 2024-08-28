@@ -1,6 +1,6 @@
 # Flow 1 - description
 
-- We assume a simple 4 packet communication between 2 coap nodes with non-piggy backed acknoledgments
+- This flow emulates a simple 4 packet coap communication, in which the sender and reciever have previously negotiated the rules, with there being a rule for each packet 
 
 - The Flow:
     - client sends a get request with a token length of 8 holding a token value 0x01.

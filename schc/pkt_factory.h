@@ -37,7 +37,12 @@ pkt_specs* get_specs(uint8_t id){
     uint64_t token;
     size_t token_len;
 
+    //This will look ugly but also i dont think it matters for now so ill just
+    //have the "flows" be here, with each packet indexed
     switch (id) {
+
+        //Start of Flow 1
+
         //client request
         case 0:
             src_port = 60000;
@@ -81,6 +86,31 @@ pkt_specs* get_specs(uint8_t id){
             token = 0x00;
             token_len = 0;
             break;
+
+        //start of Flow 2
+
+        //client post
+        case 4:
+            src_port = 60000;
+            dest_port = 5684;
+            coap_code = COAP_METHOD_POST; //(COAP_TYPE_ACK << 5) | 3;
+            coap_type = COAP_TYPE_CON;
+            coap_id = 0xfffd;
+            token = 0x08;
+            token_len = 1;
+            break;
+
+        //server response
+        case 5:
+            src_port = 5684;
+            dest_port = 60000;
+            coap_code = COAP_CODE_CONTENT;
+            coap_type = COAP_TYPE_ACK;
+            coap_id = 0xfffd;
+            token = 0x08;
+            token_len = 1;
+            break;
+
 
         default:
             src_port =0;
