@@ -373,3 +373,23 @@ Untracked files:
 	schc/flows/flow2/
 
 no changes added to commit (use "git add" and/or "git commit -a")
+
+Commit result:
+[main eec0f3b] "added flow2, but i need to leave again :|, so ill add 3 later tonight"
+ 7 files changed, 281 insertions(+), 18 deletions(-)
+ rename schc/flows/flow1/{flow1.md => README.md} (82%)
+ create mode 100644 schc/flows/flow2/README.md
+ create mode 100755 schc/flows/flow2/rule2.h
+
+------------------------------------------------------------
+On: Wed Aug 28 10:48:10 ADT 2024
+status:On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   log.txt
+	modified:   schc/res.csv
+
+no changes added to commit (use "git add" and/or "git commit -a")

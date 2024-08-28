@@ -4,4 +4,4 @@ flow number/packet, 	original size, 	compress IPv6/UDP/CoAP, compress IPv6/UDP, 
 1/server response, 		424, 			104, 					112, 				136, 				144, 			416
 1/client ack, 			416, 			96, 					112, 				128, 				144,  			408
 2/client post, 			424, 			104, 					112, 				136, 				144, 			416
-2/server response, 		424 		 	104,					112, 				136, 				144, 			416
+2/server response, 		424, 		 	104,					112, 				136, 				144, 			416
