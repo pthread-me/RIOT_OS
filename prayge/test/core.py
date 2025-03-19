@@ -1,63 +1,102 @@
 import sys
 # insert at 1, 0 is the script path (or '' in REPL)
+
 sys.path.insert(1, '../../src/')
 
+from heuristic import *
+
+import io
+from itertools import count
+import threading
+lock = threading.Lock()
+
+import coap 
 from scapy.all import *
 
 import gen_rulemanager as RM
-from protocol import SCHCProtocol
+from compr_parser import *
+from protocol import * 
 from gen_parameters import T_POSITION_CORE
 import binascii
 
+
+MAX_FIELDS_STORED = 64
+
 # Create a Rule Manager and upload the rules.
-
 rm = RM.RuleManager()
-
-with open("rule.json", "r") as file:
+with open("test_rule.json", "r") as file:
     rule = file.read()
-
 rm.Add(file=io.StringIO(rule))
-rm.Print()
 
-def processPkt(pkt):
-
-    scheduler.run(session=schc_machine)
-
-    if pkt.getlayer(Ether) != None: 
-        e_type = pkt.getlayer(Ether).type
-        
-        # identifying app packets by checking if they are ipv6[udp]
-        if e_type == 0x86dd and pkt[IPv6].nh == 17: # just UDP
-            schc_machine.schc_send(bytes(pkt)[14:], verbose=False)
-        
-        # Need to check why this is the case but schc packets from the dev have the ethertype
-        # in the layer 2 frame set to ipv4 value
-        elif e_type == 0x0800:
-            if pkt[IP].proto == 17 and pkt[UDP].dport == socket_port:
-                # got a packet in the socket
-                SCHC_pkt, device = tunnel.recvfrom(1000)
-
-                other_end = 'udp:'+device[0]+':'+str(device[1])
-                #print ("from:", other_end, binascii.hexlify(SCHC_pkt))
-                origin, full_packet = schc_machine.schc_recv(
-                                   schc_packet=SCHC_pkt, 
-                                   device_id=other_end, 
-                                   iface='eth1',
-                                   verbose=False)
-
-# Start SCHC Machine
 POSITION = T_POSITION_CORE
-
-# This is a hardcoded port number used by openschc (no ietc port is yet defined for schc)
-socket_port = 0x5C4C
 schc_machine = SCHCProtocol(role=POSITION)           
 schc_machine.set_rulemanager(rm)
-scheduler = schc_machine.system.get_scheduler()
-tunnel = schc_machine.get_tunnel()
 
-sniff(prn=processPkt, iface=["eth0", "eth1", "lo"]) 
-
+#temporary structure to divide and hold the values
+fields_dictionary: Dict[str, List[any]] = {"dev_ip_id": [], "dev_ip_pre": [], "app_ip_id": [], "app_ip_pre": [], "uri": [] }
 
 
+def core_to_dev(pkt):
+    clasify(pkt)
+    compressed, devid = schc_machine._apply_compression(device_id="1", raw_packet=bytes(pkt), verbose=False)
+    
+    eframe = Ether(dst="00:00:00:aa:00:00:00", src="00:00:00:aa:00:01") / compressed.get_content()
+    sendp(eframe, iface="eth0")
 
- 
+
+def clasify(uncomp_packet):
+    p = Parser()
+    fields, res, err = p.parse(bytes(uncomp_packet), T_DIR_DW, layers=["IPv6", "UDP", "CoAP"])
+    current = {}
+    current["dev_ip_pre"] = (fields[('IPV6.DEV_PREFIX', 1)][0]).hex()
+    current["dev_ip_id"] = fields[('IPV6.DEV_IID', 1)][0].hex() 
+    current["app_ip_id"] = fields[('IPV6.APP_PREFIX', 1)][0].hex()
+    current["app_ip_id"] = fields[('IPV6.APP_IID', 1)][0].hex()
+   
+    uri_list = []
+    for i in itertools.count(start=1):
+        try:
+            uri_list.append(fields[('COAP.URI-PATH', i)][0])
+        except:
+            break
+    
+    current["uri"] = uri_list
+    update_dictionary(current)
+    print(fields_dictionary)
+
+
+def update_dictionary(fields):
+    for f in fields:
+        update_field_list(f, fields[f])
+
+def update_field_list(field_name: str, value: any):
+    if field_name in fields_dictionary:
+        with lock:
+            if len(fields_dictionary[field_name]) == 0 or value not in fields_dictionary[field_name]:
+                fields_dictionary[field_name].append(value)
+
+def dev_to_core(pkt):
+    print(pkt)
+
+
+def process_pkt(pkt):
+    if pkt.getlayer(Ether) != None :
+        if pkt.getlayer(IPv6) != None:
+            core_to_dev(pkt[IPv6])
+        else:
+            dev_to_core(pkt[Raw])
+            
+
+
+if __name__ == "__main__":
+    
+    #   To be used in actual test as follows, we: 
+    #       1) sniff for packets reaching our iot "subnetwork" 
+    #       2)check if the dst addr is present
+    #       3) compress the pkt with the rule assosiated with the dst device -> send schcpkt
+    print("sniffing")
+    
+    sniff(prn=process_pkt, filter="not icmp6", iface=["eth0", "eth1"])
+
+    #main()
+    #print(recents)
