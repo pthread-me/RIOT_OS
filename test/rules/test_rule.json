@@ -1,0 +1,28 @@
+{
+    "DeviceID" : "1",
+    "SoR" : [{
+        "RuleIDValue" : 1,
+        "RuleIDLength": 3,
+        "Compression": [	 
+            {"FID": "IPV6.LEN",          "MO": "ignore","CDA": "compute-length"},
+            {"FID": "IPV6.NXT", "TV": 17, "MO": "ignore", "CDA": "value-sent"},
+            {"FID": "IPV6.HOP_LMT", "TV" : 255,"MO": "ignore","CDA": "value-sent"},
+            {"FID": "IPV6.DEV_PREFIX","TV": "AAAA::/64",
+                                                "MO": "ignore","CDA": "not-sent"},
+            {"FID": "IPV6.DEV_IID", "TV": "::1","MO": "ignore","CDA": "value-sent"},
+            {"FID": "IPV6.APP_PREFIX", "TV": "2001:0:0:1::/64",
+                                                "MO": "ignore","CDA": "value-sent"},
+            {"FID": "IPV6.APP_IID", "TV": "::15",
+                                            "MO": "ignore","CDA": "value-sent"},
+
+            {"FID": "UDP.DEV_PORT",  "TV": 5683,"MO": "ignore",  "CDA": "value-sent"},
+            {"FID": "UDP.APP_PORT",             "MO": "ignore",  "CDA": "value-sent"},
+            {"FID": "UDP.LEN",       "TV": 0,   "MO": "ignore", "CDA": "compute-length"},
+            {"FID": "UDP.CKSUM",     "TV": 0,   "MO": "ignore", "CDA": "compute-checksum"},
+	    
+	    {"FID": "COAP.VER",  "DI": "BI", "TV": 1,   "MO": "equal","CDA": "not-sent"}
+
+     
+	]}
+    ]
+}

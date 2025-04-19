@@ -1,38 +1,20 @@
-#!/usr/bin/env python3
-dev_ip = "aaaa::1"
-
 import coap 
 import time
 from scapy.all import *
 
+with open("samples/uniform.txt", 'r') as file:
+    fields = [line.strip().split(' ') for line in file]
 
-def p1(i):
-    if i == 0:
-        coap_layer = coap.CoAP(options=[("Uri-Path", "zuuuuuu")])
-        transport_layer = UDP(dport=5683) 
-        IP_layer = IPv6(dst="aaaa::1", src="f::1")
-        req = IP_layer / transport_layer / coap_layer   
-    elif i ==1:
-        coap_layer = coap.CoAP(options=[("Uri-Path", "first")])
-        transport_layer = UDP(dport=5683) 
-        IP_layer = IPv6(dst="bbbb::2", src="c::2")
-        req = IP_layer / transport_layer / coap_layer   
-    else:
-        coap_layer = coap.CoAP(options=[("Uri-Path", "second")])
-        transport_layer = UDP(dport=5683) 
-        IP_layer = IPv6(dst="aaaa::1", src="f::1")
-        req = IP_layer / transport_layer / coap_layer
-    
+
+pkt_list = []
+
+for field in fields:
+    coap_layer = coap.CoAP(options=[("Uri-Path", f"{field[4]}")])
+    transport_layer = UDP(dport=5683) 
+    IP_layer = IPv6(dst=f"{field[2]}:{field[3]}", src=f"{field[0]}:{field[1]}")
+    req = IP_layer / transport_layer / coap_layer
     eframe = Ether(dst="00:00:00:aa:00:00:02", src="00:00:00:aa:00:03") / req
-    sendp(eframe, iface="eth0") 
+    pkt_list.append(eframe)
 
-
-if __name__ == "__main__":
-    while(True):
-        p = input()
-        if p == "1":
-            p1(1)
-        elif p == "2":
-            p1(2)
-        else:
-            p1(0)
+for  eframe in pkt_list:
+    sendp(eframe, iface="eth0")

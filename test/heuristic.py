@@ -1,16 +1,21 @@
 from typing import List, Iterator
 
-MAX_LIST_SIZE = 64
+MAX_LIST_SIZE = 15
 
 class QField:
     def __init__(self, prio: int, ID: int, value: any):
         self.prio = prio
-        self.id = ID
+        self.id = [ID]
         self.value = value
         
     def __str__(self):
         return f"priotity:{self.prio}\tid:{self.id}\tvalue:{self.value}\n"
 
+    def add_id(self, ID):
+        n = len(self.id)
+        if n > MAX_LIST_SIZE:
+            self.id = self.id[1:n]
+        self.id.append(ID)
 
 class PrioQueue:
     def __init__(self):
@@ -37,7 +42,7 @@ class PrioQueue:
 
     def getid(self, ID):
         for f in self:
-            if f.id == ID:
+            if ID in f.id:
                 return f.value
         return None
 
@@ -66,6 +71,7 @@ class PrioQueue:
             if field.value == new_field.value:
                 field.prio = field.prio+new_field.prio
                 exists = True
+                field.add_id(new_field.id[0])
                 break
 
         if not exists:
